@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 회원정보 처리 SQL -->
+<mapper namespace="member.dao.MemberMapper">
+
+<insert id = "join" parameterType="member" >
+insert into gmember(member_id, member_pw, email, phone, cash_total) values
+(
+#{member_id}
+,#{member_pw}
+,#{email}
+,#{phone}
+, 0
+)
+</insert>
+
+<select id = "getCash_total" parameterType="string" resultType="int">
+select cash_total from gmember where member_id = #{member_id}
+</select>
+
+<delete id = "deleteMember" parameterType="String">
+delete from gmember where member_id=#{member_id} 
+</delete>
+
+<update id= "charge" parameterType="cash">
+update gmember set cash_total = cash_total + #{cash_move} where member_id = #{member_id}
+</update> 
+
+<insert id = "charge_add" parameterType="cash" >
+insert into cash (
+	cash_number
+	,member_id	
+	, cash_move
+	, cash_date
+)
+values (
+	cash_seq.nextval
+	,#{member_id}
+	, #{cash_move}
+	, sysdate
+)
+</insert>
+
+<select id = "Cashtable" resultType="cash">
+select 
+	cash_number
+	,member_id
+	,cash_move
+	,to_char(cash_date, 'yy.mm.dd  hh24:mm:ss') cash_date
+from cash
+order by cash_date desc
+</select>
+
+<!--  gmember에 id값을 비교하여 회원목록 전체 select 하는 SQL -->
+<select id = "getMember" parameterType="string" resultType="member">
+select * from gmember where member_id = #{member_id}
+</select>
+
+<!-- 모든 score table 출력하는 SQL -->
+<select id = "ScoreAll" resultType="score">
+select 
+score_num
+,member_id
+,quizscore
+,undscore
+,to_char(join_date, 'mm-dd hh:mi') as join_date
+,total
+from scoreboard
+order by total desc
+</select>
+
+<!--  UND : Score 결과를 INSERT 하는 SQL  -->
+<insert id="UpAndDownScoreNew" parameterType="score">
+insert into scoreboard (score_num, member_id, undscore, total)
+values(score_seq.nextval, #{member_id}, #{undscore}, #{total})
+</insert>
+
+<!-- QUIZ : JLPT N1 문제  가져오는 SQL -->
+<select id="getQuiz" parameterType="int" resultType="quiz">
+select * from quizboard where quiz_num = #{quiz_num}
+</select>
+
+<!-- QUIZ : JLPT N2 문제 가져오는 SQL -->
+<select id="getQuiz2" parameterType="int" resultType="quiz">
+select * from quizboard2 where quiz_num = #{quiz_num}
+</select>
+
+<!-- QUIZ : SCORE 결과를 INSERT 하는 SQL -->
+<insert id="QuizNew" parameterType="score">
+insert into scoreboard(member_id,score_num,quizscore,total)
+values(#{member_id}, score_seq.nextval, #{undscore}, #{total})
+</insert>
+
+</mapper>
